@@ -1,7 +1,7 @@
-import { uuid } from './crypto.js'
+import { hash } from './crypto.js'
 
-export const Component = (template = {}) => {
-    const id = uuid()
+export const Component = (_id, template = {}) => {
+    const id = hash(_id)
     const keys = Object.keys(template).sort()
 
     const fn = data => ({ id, data: keys.map(k => data ? data[k] : false) })

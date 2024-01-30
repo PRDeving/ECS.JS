@@ -1,7 +1,7 @@
 import { Component as ComponentSchema } from './component.js'
 import { PRIMITIVE_TYPE as TYPE } from './types.js'
 
-const AliveComponent = ComponentSchema()
+const AliveComponent = ComponentSchema('AliveComponent')
 
 export const ECS = (...c) => {
     const entities = []
@@ -16,6 +16,7 @@ export const ECS = (...c) => {
     const registerComponent = (...schemas) => schemas.forEach(schema => {
         componentIdToIdx[schema.id] = components.push([]) - 1
     })
+
     registerComponent(AliveComponent, ...c)
     const aliveComponentIdx = componentIdToIdx[AliveComponent.id]
 
