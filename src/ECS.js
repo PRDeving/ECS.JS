@@ -7,6 +7,7 @@ export const ECS = (...c) => {
     const entities = []
     const components = []
     const componentIdToIdx = {}
+    const idxToComponentId = []
     const archetypes = {}
 
     let tickDeletes = []
@@ -14,7 +15,9 @@ export const ECS = (...c) => {
     let processArchetypes = false
 
     const registerComponent = (...schemas) => schemas.forEach(schema => {
-        componentIdToIdx[schema.id] = components.push([]) - 1
+        const idx = components.push([]) - 1
+        componentIdToIdx[schema.id] = idx
+        idxToComponentId[idx] = schema.id
     })
 
     registerComponent(AliveComponent, ...c)
@@ -78,6 +81,7 @@ export const ECS = (...c) => {
 
         System,
         Archetype: ArchetypeFromComponents,
+        componentId: idx => idxToComponentId[idx],
         component: c => components[componentIdToIdx[c.id]],
         tick: () => {
             tickDeletes.forEach(idx => {
