@@ -37,21 +37,21 @@ export const ECS = (...c) => {
     })
 
     const Archetype = (mask) => {
-        archetypes[mask] = []
+        if (!archetypes[mask]) archetypes[mask] = []
+        archetypes[mask].length = 0
         entities.forEach((m, idx) => ((mask & m) == mask) && archetypes[mask].push(idx))
         return { mask }
     }
 
-    function System (filter, fn) {
-        return (args) => fn(this, archetypes[filter.mask], args)
-    }
+    const maskFromComponents = (cs) => cs.reduce((mask, c) => {
+        mask |= 1 << componentIdToIdx[c.id]
+        return mask
+    }, 0)
 
-    const ArchetypeFromComponents = (...cs) => {
-        const mask = cs.reduce((mask, c) => {
-            mask |= 1 << componentIdToIdx[c.id]
-            return mask
-        }, 0)
-        return Archetype(mask)
+    function System (cs, fn) {
+        const mask = maskFromComponents(cs)
+        const archetype = Archetype(mask)
+        return (args) => fn(this, archetypes[archetype.mask], args)
     }
 
     return {
@@ -61,6 +61,14 @@ export const ECS = (...c) => {
 
         spawn,
         entity: e => ({
+            has: c => {
+                const idx = componentIdToIdx[c.id]
+                return !!components[idx][e]
+            },
+            get: c => {
+                const idx = componentIdToIdx[c.id]
+                return components[idx][e]
+            },
             add: c => {
                 const idx = componentIdToIdx[c.id]
                 components[idx][e] = c.data
@@ -80,7 +88,6 @@ export const ECS = (...c) => {
         }),
 
         System,
-        Archetype: ArchetypeFromComponents,
         componentId: idx => idxToComponentId[idx],
         component: c => components[componentIdToIdx[c.id]],
         tick: () => {
