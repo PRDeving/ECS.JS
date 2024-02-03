@@ -12,7 +12,7 @@ export const ECS = (...c) => {
 
     let tickDeletes = []
     const toDelete = []
-    let processArchetypes = false
+    let archetypeRecomputeMask = 0
 
     const registerComponent = (...schemas) => schemas.forEach(schema => {
         const idx = components.push([]) - 1
@@ -26,14 +26,14 @@ export const ECS = (...c) => {
     const spawn = (...ass) => ass.forEach(cs => {
         const id = toDelete.length ? toDelete.shift() : (entities.push(0) - 1)
 
-        components[aliveComponentIdx][id] = true
+        components[aliveComponentIdx][id] = [true]
         entities[id] = cs.reduce((l, component) => {
             const idx = componentIdToIdx[component.id]
             components[idx][id] = component.data
             l |= 1 << idx
             return l
         }, 0)
-        processArchetypes = true
+        archetypeRecomputeMask |= entities[id]
     })
 
     const Archetype = (mask) => {
@@ -73,13 +73,13 @@ export const ECS = (...c) => {
                 const idx = componentIdToIdx[c.id]
                 components[idx][e] = c.data
                 entities[e] |= 1 << idx
-                processArchetypes = true
+                archetypeRecomputeMask |= 1 << idx
             },
             remove: c => {
                 const idx = componentIdToIdx[c.id]
                 components[idx][e] = false
                 entities[e] &= ~(1 << idx)
-                processArchetypes = true
+                archetypeRecomputeMask |= 1 << idx
             },
             kill: () => {
                 components[aliveComponentIdx][e] = false
@@ -93,10 +93,12 @@ export const ECS = (...c) => {
         tick: () => {
             tickDeletes.forEach(idx => {
                 components.forEach(c => delete c[idx])
+                archetypeRecomputeMask |= entities[idx]
                 entities[idx] = 0
             })
             toDelete.push(...tickDeletes)
-            if (tickDeletes.length || processArchetypes) Object.keys(archetypes).forEach(Archetype)
+            if (archetypeRecomputeMask) Object.keys(archetypes).filter(mask => mask & archetypeRecomputeMask).forEach(Archetype)
+            archetypeRecomputeMask = 0
             tickDeletes = []
         }
     }
