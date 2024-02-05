@@ -51,7 +51,7 @@ export const ECS = (...c) => {
     function System (cs, fn) {
         const mask = maskFromComponents(cs)
         const archetype = Archetype(mask)
-        return (args) => fn(this, archetypes[archetype.mask], ...args)
+        return (args) => fn(this, archetypes[archetype.mask], args)
     }
 
     return {
