@@ -1,3 +1,5 @@
+# TODO OUTDATED README, UPDATE
+
 # ECS.JS
 
 ECS.JS is a lightweight, flexible implementation of the Entity-Component-System (ECS) architecture pattern,
